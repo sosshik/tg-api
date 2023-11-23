@@ -25,11 +25,14 @@ type Api struct {
 }
 
 func (a *Api) AddCallback(f func(*Api, Update), key string) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	if a.callback == nil {
+
+	if a.mu.Lock(); a.callback == nil {
+
 		a.callback = make(map[string]func(*Api, Update))
+
 	}
+	a.mu.Unlock()
+
 	a.callback[key] = f
 	log.Warnf("callback %s was set", key)
 }
