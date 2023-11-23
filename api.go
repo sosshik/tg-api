@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"sync"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -20,9 +21,12 @@ type Api struct {
 	TelegramAPI string
 	HTTPClient  HTTPClientInterface
 	callback    map[string]func(*Api, Update)
+	mu          sync.Mutex
 }
 
 func (a *Api) AddCallback(f func(*Api, Update), key string) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
 	if a.callback == nil {
 		a.callback = make(map[string]func(*Api, Update))
 	}
@@ -48,6 +52,8 @@ func (a *Api) SendTextToTelegramChat(chatId int, text string) (string, error) {
 		return "", fmt.Errorf("error when posting text \"%s\" to the chat %d: %w", text, chatId, err)
 	}
 
+	defer response.Body.Close()
+
 	switch code := response.StatusCode; {
 	case code >= 400 && code < 500:
 		return "", fmt.Errorf("bad request: %v", response.Body)
@@ -59,7 +65,6 @@ func (a *Api) SendTextToTelegramChat(chatId int, text string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error in parsing telegram response %v, from chat id %d: %w", response, chatId, err)
 	}
-	defer response.Body.Close()
 
 	return string(body), nil
 }
@@ -91,7 +96,16 @@ func (a *Api) HandleTelegramWebHook(w http.ResponseWriter, r *http.Request) {
 	if f, ok := a.callback[update.Message.Text]; ok {
 		f(a, update)
 	} else if update.Message.Location.Latitude != 0 && update.Message.Location.Longitude != 0 {
-		a.callback["/location"](a, update)
+
+		if f, ok := a.callback["/location"]; ok {
+
+			f(a, update)
+
+		} else {
+			log.Warnf("Please add callback for /location command to handle users location")
+			a.SendMessageWithLog("*Unknown command*", update)
+		}
+
 	} else {
 		a.SendMessageWithLog("*Unknown command*", update)
 	}
