@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -17,11 +19,16 @@ type HTTPClientInterface interface {
 	PostForm(url string, data url.Values) (*http.Response, error)
 }
 
+type HandleUserInput interface {
+	HandleUserInput(*Api, Update)
+}
+
 type Api struct {
 	SendString string
 	GetUpdStr  string
 	HTTPClient HTTPClientInterface
 	callback   map[string]func(*Api, Update)
+	userInput  HandleUserInput
 	mu         sync.Mutex
 }
 
@@ -94,16 +101,45 @@ func (a *Api) SendMessage(message OutgoingMessage) error {
 	return nil
 }
 
-func (a *Api) HandleTelegramWebHook(w http.ResponseWriter, r *http.Request) {
-
-	log.Infof("parsing telegram request %v", r)
-
-	update, err := ParseTelegramRequest(r)
+func (a *Api) GetUpdates(offset int) ([]Update, error) {
+	resp, err := http.Get(a.GetUpdStr + "?offset=" + strconv.Itoa(offset))
 	if err != nil {
-		log.Warnf("error while parsing update: %v\n", err)
-		return
+		return nil, fmt.Errorf("error parsing telegram response: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var result []Update
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("error decoding json: %w", err)
 	}
 
+	return result, nil
+}
+
+func (a *Api) PollUpdates() {
+	offset := 0
+	for {
+		updates, err := a.GetUpdates(offset)
+		if err != nil {
+			log.Println("Error getting updates:", err)
+			continue
+		}
+
+		for _, update := range updates {
+			offset = update.UpdateId + 1
+
+			if strings.HasPrefix(update.Message.Text, "/") {
+				a.HandleCommand(update)
+			} else {
+				a.userInput.HandleUserInput(a, update)
+			}
+		}
+
+		time.Sleep(1 * time.Second)
+	}
+}
+
+func (a *Api) HandleCommand(update Update) {
 	if f, ok := a.callback[update.Message.Text]; ok {
 		f(a, update)
 	} else if update.Message.Location.Latitude != 0 && update.Message.Location.Longitude != 0 {
@@ -120,7 +156,23 @@ func (a *Api) HandleTelegramWebHook(w http.ResponseWriter, r *http.Request) {
 	} else {
 		a.SendMessageWithLog("*Unknown command*", update)
 	}
+}
 
+func (a *Api) HandleTelegramWebHook(w http.ResponseWriter, r *http.Request) {
+
+	log.Infof("parsing telegram request %v", r)
+
+	update, err := ParseTelegramRequest(r)
+	if err != nil {
+		log.Warnf("error while parsing update: %v\n", err)
+		return
+	}
+
+	if strings.HasPrefix(update.Message.Text, "/") {
+		a.HandleCommand(update)
+	} else {
+		a.userInput.HandleUserInput(a, update)
+	}
 }
 
 func (a *Api) SendMessageWithLog(text string, update Update) {
@@ -140,19 +192,4 @@ func (a *Api) SendMessageWithLog(text string, update Update) {
 	} else {
 		log.Infof("message \" %s\" successfuly distributed to chat id %d", text, update.Message.Chat.Id)
 	}
-}
-
-func (a *Api) GetUpdates(timeout string) ([]Update, error) {
-	resp, err := http.Get(a.GetUpdStr + "?timeout=" + timeout)
-	if err != nil {
-		return nil, fmt.Errorf("error parsing telegram response: %w", err)
-	}
-	defer resp.Body.Close()
-
-	var result []Update
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("error decoding json: %w", err)
-	}
-
-	return result, nil
 }
