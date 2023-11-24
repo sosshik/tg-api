@@ -18,8 +18,8 @@ func TestSendTextToTelegramChat(t *testing.T) {
 
 	mockClient := &mocks.HTTPClientInterface{}
 	app := &Api{
-		TelegramAPI: "https://api.telegram.org/bot" + token + "/sendMessage",
-		HTTPClient:  mockClient,
+		SendString: "https://api.telegram.org/bot" + token + "/sendMessage",
+		HTTPClient: mockClient,
 	}
 
 	tests := []struct {
@@ -34,7 +34,7 @@ func TestSendTextToTelegramChat(t *testing.T) {
 	}{
 		{
 			"Positive Test",
-			app.TelegramAPI,
+			app.SendString,
 			123,
 			"your_message",
 			&http.Response{Body: io.NopCloser(strings.NewReader("message your_message successfuly distributed to chat id 123")), StatusCode: http.StatusOK},
@@ -44,7 +44,7 @@ func TestSendTextToTelegramChat(t *testing.T) {
 		},
 		{
 			"Negative Test",
-			app.TelegramAPI,
+			app.SendString,
 			123,
 			"your_message",
 			nil,

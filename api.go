@@ -18,10 +18,11 @@ type HTTPClientInterface interface {
 }
 
 type Api struct {
-	TelegramAPI string
-	HTTPClient  HTTPClientInterface
-	callback    map[string]func(*Api, Update)
-	mu          sync.Mutex
+	SendString string
+	GetUpdStr  string
+	HTTPClient HTTPClientInterface
+	callback   map[string]func(*Api, Update)
+	mu         sync.Mutex
 }
 
 func (a *Api) AddCallback(f func(*Api, Update), key string) {
@@ -57,7 +58,7 @@ func ParseTelegramRequest(r *http.Request) (Update, error) {
 
 func (a *Api) SendTextToTelegramChat(chatId int, text string) (string, error) {
 
-	response, err := a.HTTPClient.PostForm(a.TelegramAPI, url.Values{"chat_id": {strconv.Itoa(chatId)}, "text": {text}})
+	response, err := a.HTTPClient.PostForm(a.SendString, url.Values{"chat_id": {strconv.Itoa(chatId)}, "text": {text}})
 	if err != nil {
 		return "", fmt.Errorf("error when posting text \"%s\" to the chat %d: %w", text, chatId, err)
 	}
@@ -85,7 +86,7 @@ func (a *Api) SendMessage(message OutgoingMessage) error {
 		return fmt.Errorf("error encoding message: %w", err)
 	}
 
-	_, err = http.Post(a.TelegramAPI, "application/json", bytes.NewBuffer(body))
+	_, err = http.Post(a.SendString, "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		return fmt.Errorf("error sending message: %w", err)
 	}
@@ -139,4 +140,19 @@ func (a *Api) SendMessageWithLog(text string, update Update) {
 	} else {
 		log.Infof("message \" %s\" successfuly distributed to chat id %d", text, update.Message.Chat.Id)
 	}
+}
+
+func (a *Api) GetUpdates(timeout string) ([]Update, error) {
+	resp, err := http.Get(a.GetUpdStr + "?timeout=" + timeout)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing telegram response: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var result []Update
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("error decoding json: %w", err)
+	}
+
+	return result, nil
 }
