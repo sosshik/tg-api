@@ -28,7 +28,7 @@ type Api struct {
 	GetUpdStr  string
 	HTTPClient HTTPClientInterface
 	callback   map[string]func(*Api, Update)
-	userInput  HandleUserInput
+	UserInput  HandleUserInput
 	mu         sync.Mutex
 }
 
@@ -131,7 +131,7 @@ func (a *Api) PollUpdates() {
 			if strings.HasPrefix(update.Message.Text, "/") {
 				a.HandleCommand(update)
 			} else {
-				a.userInput.HandleUserInput(a, update)
+				a.UserInput.HandleUserInput(a, update)
 			}
 		}
 
@@ -171,7 +171,7 @@ func (a *Api) HandleTelegramWebHook(w http.ResponseWriter, r *http.Request) {
 	if strings.HasPrefix(update.Message.Text, "/") {
 		a.HandleCommand(update)
 	} else {
-		a.userInput.HandleUserInput(a, update)
+		a.UserInput.HandleUserInput(a, update)
 	}
 }
 
