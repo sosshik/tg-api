@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -114,29 +113,6 @@ func (a *Api) GetUpdates(offset int) ([]Update, error) {
 	}
 
 	return result, nil
-}
-
-func (a *Api) PollUpdates() {
-	offset := 0
-	for {
-		updates, err := a.GetUpdates(offset)
-		if err != nil {
-			log.Println("Error getting updates:", err)
-			continue
-		}
-
-		for _, update := range updates {
-			offset = update.UpdateId + 1
-
-			if strings.HasPrefix(update.Message.Text, "/") {
-				a.HandleCommand(update)
-			} else {
-				a.UserInput.HandleUserInput(a, update)
-			}
-		}
-
-		time.Sleep(1 * time.Second)
-	}
 }
 
 func (a *Api) HandleCommand(update Update) {
