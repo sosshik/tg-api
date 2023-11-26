@@ -126,11 +126,11 @@ func (a *Api) HandleCommand(update Update) {
 
 		} else {
 			log.Warnf("Please add callback for /location command to handle users location")
-			a.SendMessageWithLog("*Unknown command*", update)
+			a.SendMessageWithLog("*Unknown command*", update.Message.Chat.Id)
 		}
 
 	} else {
-		a.SendMessageWithLog("*Unknown command*", update)
+		a.SendMessageWithLog("*Unknown command*", update.Message.Chat.Id)
 	}
 }
 
@@ -151,21 +151,21 @@ func (a *Api) HandleTelegramWebHook(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a *Api) SendMessageWithLog(text string, update Update) {
+func (a *Api) SendMessageWithLog(text string, chatId int) {
 
 	message := OutgoingMessage{
-		ChatId:    update.Message.Chat.Id,
+		ChatId:    chatId,
 		Text:      text,
 		ParseMode: "Markdown",
 	}
 
-	log.Infof("Sending \" %s\" message to chat_id: %d", text, update.Message.Chat.Id)
+	log.Infof("Sending \" %s\" message to chat_id: %d", text, chatId)
 
 	err := a.SendMessage(message)
 	if err != nil {
-		log.Warnf("got error %s while sending start message to telegram, chat id is %d", err, update.Message.Chat.Id)
+		log.Warnf("got error %s while sending start message to telegram, chat id is %d", err, chatId)
 		return
 	} else {
-		log.Infof("message \" %s\" successfuly distributed to chat id %d", text, update.Message.Chat.Id)
+		log.Infof("message \" %s\" successfuly distributed to chat id %d", text, chatId)
 	}
 }
