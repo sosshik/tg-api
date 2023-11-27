@@ -1,5 +1,5 @@
 ## Overview
-This is the library for Telegram API. With this library you can set response on user's commands.
+This is the library for Telegram API. With this library you can set responses on user's commands.
 
 ## How to run
 
@@ -15,9 +15,10 @@ Import to your project:
 
 1. Load your Telegram Token from .env file
 2. Create Api Struct using your Telegram Token and &http.Client{}
-3. Add callback that is bounded to the command
-4. Create a serever with handler set to our webhook
-5. Set the server to listen and serve
+2. Set instance that will handle user input
+4. Add callback that is bounded to the command
+5. Create a serever with handler set to our webhook
+6. Set the server to listen and serve
 
 ## Example 
 
@@ -36,9 +37,12 @@ Import to your project:
 
         // Create Api Struct using your Telegram Token and &http.Client{}
         api := tgapi.Api{
-            TelegramAPI: "https://api.telegram.org/bot" + os.Getenv("TELEGRAM_TOKEN") + "/sendMessage",
+            SendString: "https://api.telegram.org/bot" + os.Getenv("TELEGRAM_TOKEN") + "/sendMessage",
+			GetUpdStr:  "https://api.telegram.org/bot" + os.Getenv("TELEGRAM_TOKEN") + "/getUpdates",
             HTTPClient:  &http.Client{},
         }
+        // Set instance that will handle user input 
+        tgapi.UserInput = &YourStruct{}
 
         // Add callback that is bounded to the command
         api.AddCallback(YourWebhook, "/yourcommand")
@@ -59,6 +63,14 @@ Import to your project:
 
     // This function always should take *tgapi.Api and tgapi.Update as input, it cannot output anything
     func YourWebhook (a *tgapi.Api, update tgapi.Update){
+        // Your function
+    }
+
+    type YourStruct struct{
+        //Your fileds 
+    }
+
+    func (y *YourStruct) HandleUserInput(a *tgapi.Api, update Update){
         // Your function
     }
 
