@@ -189,3 +189,19 @@ func (a *Api) SendMessageAndKeyboardWithLog(text string, chatId int, keyboard Ke
 		log.Infof("message \" %s\" successfuly distributed to chat id %d", text, chatId)
 	}
 }
+
+func (a *Api) CreateKeyboard(commands []string) Keyboard {
+
+	buttons := [][]KeyboardButton{}
+	for _, command := range commands {
+		keyboardRow := []KeyboardButton{{Text: command}}
+		buttons = append(buttons, keyboardRow)
+	}
+
+	keyboard := Keyboard{
+		InlineKeyboard: buttons,
+	}
+
+	return keyboard
+
+}
