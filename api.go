@@ -99,6 +99,19 @@ func (a *Api) SendMessage(message OutgoingMessage) error {
 
 	return nil
 }
+func (a *Api) SendMessageAndKeyboard(message OutgoingMessageWithKeyboard) error {
+	body, err := json.Marshal(message)
+	if err != nil {
+		return fmt.Errorf("error encoding message: %w", err)
+	}
+
+	_, err = http.Post(a.SendMessageURL, "application/json", bytes.NewBuffer(body))
+	if err != nil {
+		return fmt.Errorf("error sending message: %w", err)
+	}
+
+	return nil
+}
 
 func (a *Api) GetUpdates(offset int) ([]Update, error) {
 	resp, err := http.Get(fmt.Sprintf("%s?offset=%d", a.GetUpdatesURL, offset))
@@ -172,7 +185,7 @@ func (a *Api) SendMessageWithLog(text string, chatId int) {
 
 func (a *Api) SendMessageAndKeyboardWithLog(text string, chatId int, keyboard Keyboard) {
 
-	message := OutgoingMessage{
+	message := OutgoingMessageWithKeyboard{
 		ChatId:    chatId,
 		Text:      text,
 		ParseMode: "Markdown",
@@ -181,7 +194,7 @@ func (a *Api) SendMessageAndKeyboardWithLog(text string, chatId int, keyboard Ke
 
 	log.Infof("Sending \" %s\" message to chat_id: %d", text, chatId)
 
-	err := a.SendMessage(message)
+	err := a.SendMessageAndKeyboard(message)
 	if err != nil {
 		log.Warnf("got error %s while sending start message to telegram, chat id is %d", err, chatId)
 		return
