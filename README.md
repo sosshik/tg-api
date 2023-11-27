@@ -37,8 +37,8 @@ Import to your project:
 
         // Create Api Struct using your Telegram Token and &http.Client{}
         api := tgapi.Api{
-            SendString: "https://api.telegram.org/bot" + os.Getenv("TELEGRAM_TOKEN") + "/sendMessage",
-			GetUpdStr:  "https://api.telegram.org/bot" + os.Getenv("TELEGRAM_TOKEN") + "/getUpdates",
+            SendMessageURL: "https://api.telegram.org/bot" + os.Getenv("TELEGRAM_TOKEN") + "/sendMessage",
+			GetUpdatesURL:  "https://api.telegram.org/bot" + os.Getenv("TELEGRAM_TOKEN") + "/getUpdates",
             HTTPClient:  &http.Client{},
         }
         // Set instance that will handle user input 
