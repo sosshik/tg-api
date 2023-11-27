@@ -23,12 +23,12 @@ type HandleUserInput interface {
 }
 
 type Api struct {
-	SendString string
-	GetUpdStr  string
-	HTTPClient HTTPClientInterface
-	callback   map[string]func(*Api, Update)
-	UserInput  HandleUserInput
-	mu         sync.Mutex
+	SendMessageURL string
+	GetUpdatesURL  string
+	HTTPClient     HTTPClientInterface
+	callback       map[string]func(*Api, Update)
+	UserInput      HandleUserInput
+	mu             sync.Mutex
 }
 
 func (a *Api) AddCallback(f func(*Api, Update), key string) {
@@ -64,7 +64,7 @@ func ParseTelegramRequest(r *http.Request) (Update, error) {
 
 func (a *Api) SendTextToTelegramChat(chatId int, text string) (string, error) {
 
-	response, err := a.HTTPClient.PostForm(a.SendString, url.Values{"chat_id": {strconv.Itoa(chatId)}, "text": {text}})
+	response, err := a.HTTPClient.PostForm(a.SendMessageURL, url.Values{"chat_id": {strconv.Itoa(chatId)}, "text": {text}})
 	if err != nil {
 		return "", fmt.Errorf("error when posting text \"%s\" to the chat %d: %w", text, chatId, err)
 	}
@@ -92,7 +92,7 @@ func (a *Api) SendMessage(message OutgoingMessage) error {
 		return fmt.Errorf("error encoding message: %w", err)
 	}
 
-	_, err = http.Post(a.SendString, "application/json", bytes.NewBuffer(body))
+	_, err = http.Post(a.SendMessageURL, "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		return fmt.Errorf("error sending message: %w", err)
 	}
@@ -101,7 +101,7 @@ func (a *Api) SendMessage(message OutgoingMessage) error {
 }
 
 func (a *Api) GetUpdates(offset int) ([]Update, error) {
-	resp, err := http.Get(a.GetUpdStr + "?offset=" + strconv.Itoa(offset))
+	resp, err := http.Get(fmt.Sprintf("%s?offset=%d", a.GetUpdatesURL, offset))
 	if err != nil {
 		return nil, fmt.Errorf("error parsing telegram response: %w", err)
 	}
