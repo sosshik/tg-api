@@ -169,3 +169,23 @@ func (a *Api) SendMessageWithLog(text string, chatId int) {
 		log.Infof("message \" %s\" successfuly distributed to chat id %d", text, chatId)
 	}
 }
+
+func (a *Api) SendMessageAndKeyboardWithLog(text string, chatId int, keyboard Keyboard) {
+
+	message := OutgoingMessage{
+		ChatId:    chatId,
+		Text:      text,
+		ParseMode: "Markdown",
+		Keyboard:  keyboard,
+	}
+
+	log.Infof("Sending \" %s\" message to chat_id: %d", text, chatId)
+
+	err := a.SendMessage(message)
+	if err != nil {
+		log.Warnf("got error %s while sending start message to telegram, chat id is %d", err, chatId)
+		return
+	} else {
+		log.Infof("message \" %s\" successfuly distributed to chat id %d", text, chatId)
+	}
+}
