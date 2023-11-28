@@ -16,6 +16,12 @@ type OutgoingMessage struct {
 	Text      string `json:"text"`
 	ParseMode string `json:"parse_mode"`
 }
+type OutgoingMessageWithKeyboard struct {
+	ChatId    int      `json:"chat_id"`
+	Text      string   `json:"text"`
+	ParseMode string   `json:"parse_mode"`
+	Keyboard  Keyboard `json:"reply_markup,omitempty"`
+}
 
 type Chat struct {
 	Id int `json:"id"`
@@ -26,10 +32,10 @@ type Location struct {
 	Longitude float64 `json:"longitude"`
 }
 
-type Holiday struct {
-	Name    string `json:"name"`
-	Country string `json:"country"`
-	Date    string `json:"date"`
-	WeekDay string `json:"week_day"`
-	Type    string `json:"type"`
+type KeyboardButton struct {
+	Text string `json:"text"`
+}
+
+type Keyboard struct {
+	InlineKeyboard [][]KeyboardButton `json:"keyboard"`
 }
