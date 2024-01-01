@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"git.foxminded.ua/foxstudent106264/tgapi/mocks"
+	"github.com/sosshik/tgapi/mocks"
 	"github.com/stretchr/testify/assert"
 )
 

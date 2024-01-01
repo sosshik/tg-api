@@ -5,11 +5,11 @@ This is the library for Telegram API. With this library you can set responses on
 
 `go get` it using command: 
 
-    go get git.foxminded.ua/foxstudent106264/tgapi@latest
+    go get github.com/sosshik/tgapi@latest
 
 Import to your project:
 
-    import "git.foxminded.ua/foxstudent106264/tgapi"
+    import "github.com/sosshik/tgapi"
 
 ## How to use
 
@@ -27,7 +27,7 @@ Import to your project:
     import (
         "os"
 
-        "git.foxminded.ua/foxstudent106264/tgapi"
+        "github.com/sosshik/tgapi"
         "github.com/Valgard/godotenv"
     )
 
