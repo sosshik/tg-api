@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sosshik/tgapi/mocks"
+	"github.com/sosshik/tg-api/mocks"
 	"github.com/stretchr/testify/assert"
 )
 

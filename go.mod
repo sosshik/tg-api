@@ -1,4 +1,4 @@
-module github.com/sosshik/tgapi
+module github.com/sosshik/tg-api
 
 go 1.21.0
 
